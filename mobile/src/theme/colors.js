@@ -1,0 +1,26 @@
+export const Colors = {
+  primary: '#1A237E',       // Deep blue (like PhonePe)
+  primaryLight: '#3949AB',
+  primaryDark: '#0D1B6E',
+  accent: '#7C4DFF',        // Purple accent
+  accentLight: '#B39DDB',
+  success: '#00C853',
+  successLight: '#E8F5E9',
+  error: '#D32F2F',
+  errorLight: '#FFEBEE',
+  warning: '#FF6F00',
+  warningLight: '#FFF8E1',
+  white: '#FFFFFF',
+  black: '#000000',
+  background: '#F5F5F5',
+  surface: '#FFFFFF',
+  textPrimary: '#212121',
+  textSecondary: '#757575',
+  textHint: '#BDBDBD',
+  border: '#E0E0E0',
+  divider: '#EEEEEE',
+  debit: '#D32F2F',
+  credit: '#00C853',
+  cardGradientStart: '#1A237E',
+  cardGradientEnd: '#7C4DFF',
+};

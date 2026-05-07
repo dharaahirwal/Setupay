@@ -1,0 +1,7 @@
+// PayApp build init - disable JDK toolchain auto-download
+// This prevents Gradle from trying to download JDK 17 when JDK 21 is available
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions.jvmTarget = "11"
+    }
+}
