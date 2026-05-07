@@ -1,10 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Change this to your backend IP when running on a real device
-// For emulator use: http://10.0.2.2:5000
-// For real device use: http://<YOUR_PC_IP>:5000
-const BASE_URL = 'http://172.21.232.45:5000/api';
+// Production API URL (Render deployment)
+const BASE_URL = 'https://setupay.onrender.com/api';
 
 const client = axios.create({
   baseURL: BASE_URL,
