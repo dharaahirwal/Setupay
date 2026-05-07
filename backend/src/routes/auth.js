@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
+const { User } = require('../models');
 const { protect } = require('../middleware/auth');
 
 // Generate JWT
@@ -30,7 +30,7 @@ router.post(
     try {
       const { username, password } = req.body;
 
-      const user = await User.findOne({ username });
+      const user = await User.findOne({ where: { username } });
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -47,16 +47,16 @@ router.post(
       }
 
       user.lastLogin = new Date();
-      await user.save({ validateBeforeSave: false });
+      await user.save();
 
-      const token = generateToken(user._id);
+      const token = generateToken(user.id);
 
       res.json({
         success: true,
         message: 'Login successful',
         token,
         user: {
-          id: user._id,
+          id: user.id,
           username: user.username,
           fullName: user.fullName,
           phone: user.phone,
@@ -79,7 +79,7 @@ router.post(
 // @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password -upiPin');
+    const user = await User.findByPk(req.user.id);
     res.json({ success: true, user });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -109,7 +109,7 @@ router.post(
       const { pin, password } = req.body;
 
       // Fetch user with password for verification
-      const user = await User.findById(req.user._id);
+      const user = await User.findByPk(req.user.id);
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
         return res.status(401).json({
@@ -152,7 +152,7 @@ router.post(
 
     try {
       const { currentPassword, newPassword } = req.body;
-      const user = await User.findById(req.user._id);
+      const user = await User.findByPk(req.user.id);
 
       const isMatch = await user.comparePassword(currentPassword);
       if (!isMatch) {

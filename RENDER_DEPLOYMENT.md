@@ -71,15 +71,15 @@ Fill in the following details:
 - **Name:** `setupay-backend`
 - **Region:** Oregon (US West) or closest to you
 - **Branch:** `main`
-- **Root Directory:** Leave empty
+- **Root Directory:** `backend`
 - **Runtime:** `Node`
 - **Build Command:**
   ```bash
-  cd backend && npm install
+  npm install
   ```
 - **Start Command:**
   ```bash
-  cd backend && npm start
+  npm start
   ```
 
 **Instance Type:**

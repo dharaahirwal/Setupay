@@ -1,99 +1,115 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
 const bcrypt = require('bcryptjs');
+const { sequelize } = require('../config/database');
 
-const userSchema = new mongoose.Schema(
-  {
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    phone: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    email: {
-      type: String,
-      trim: true,
-      lowercase: true,
-    },
-    upiId: {
-      type: String,
-      unique: true,
-    },
-    upiPin: {
-      type: String, // hashed 4 or 6 digit PIN
-      default: null,
-    },
-    upiPinSet: {
-      type: Boolean,
-      default: false,
-    },
-    balance: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    profilePicture: {
-      type: String,
-      default: null,
-    },
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    lastLogin: {
-      type: Date,
-      default: null,
-    },
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  { timestamps: true }
-);
-
-// Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(12);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+    validate: {
+      notEmpty: true
+    }
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  fullName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: true
+    }
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  email: {
+    type: DataTypes.STRING,
+    validate: {
+      isEmail: true
+    }
+  },
+  upiId: {
+    type: DataTypes.STRING,
+    unique: true
+  },
+  upiPin: {
+    type: DataTypes.STRING,
+    defaultValue: null
+  },
+  upiPinSet: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  balance: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+    validate: {
+      min: 0
+    }
+  },
+  profilePicture: {
+    type: DataTypes.STRING,
+    defaultValue: null
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    defaultValue: null
+  }
+}, {
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (user) => {
+      if (user.password) {
+        const salt = await bcrypt.genSalt(12);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        const salt = await bcrypt.genSalt(12);
+        user.password = await bcrypt.hash(user.password, salt);
+      }
+    }
+  }
 });
 
-// Compare password
-userSchema.methods.comparePassword = async function (candidatePassword) {
+// Instance methods
+User.prototype.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Hash UPI PIN before saving
-userSchema.methods.setUpiPin = async function (pin) {
+User.prototype.setUpiPin = async function (pin) {
   const salt = await bcrypt.genSalt(12);
   this.upiPin = await bcrypt.hash(pin, salt);
   this.upiPinSet = true;
   await this.save();
 };
 
-// Compare UPI PIN
-userSchema.methods.compareUpiPin = async function (pin) {
+User.prototype.compareUpiPin = async function (pin) {
   if (!this.upiPin) return false;
   return bcrypt.compare(pin, this.upiPin);
 };
 
 // Remove sensitive fields from JSON output
-userSchema.methods.toJSON = function () {
-  const obj = this.toObject();
-  delete obj.password;
-  delete obj.upiPin;
-  return obj;
+User.prototype.toJSON = function () {
+  const values = { ...this.get() };
+  delete values.password;
+  delete values.upiPin;
+  return values;
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = User;

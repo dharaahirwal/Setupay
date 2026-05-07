@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
+const { User } = require('../models');
 const { protect } = require('../middleware/auth');
+const { Op } = require('sequelize');
 
 // @route   GET /api/user/profile
 // @desc    Get user profile
 // @access  Private
 router.get('/profile', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select('-password -upiPin');
+    const user = await User.findByPk(req.user.id);
     res.json({ success: true, user });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error' });
@@ -34,15 +35,12 @@ router.put(
 
     try {
       const { fullName, email } = req.body;
-      const updateFields = {};
-      if (fullName) updateFields.fullName = fullName;
-      if (email) updateFields.email = email;
-
-      const user = await User.findByIdAndUpdate(
-        req.user._id,
-        { $set: updateFields },
-        { new: true, runValidators: true }
-      ).select('-password -upiPin');
+      const user = await User.findByPk(req.user.id);
+      
+      if (fullName) user.fullName = fullName;
+      if (email) user.email = email;
+      
+      await user.save();
 
       res.json({ success: true, user });
     } catch (error) {
@@ -56,10 +54,13 @@ router.put(
 // @access  Private
 router.get('/contacts', protect, async (req, res) => {
   try {
-    const users = await User.find({
-      _id: { $ne: req.user._id },
-      isActive: true,
-    }).select('username fullName upiId phone profilePicture');
+    const users = await User.findAll({
+      where: {
+        id: { [Op.ne]: req.user.id },
+        isActive: true,
+      },
+      attributes: ['id', 'username', 'fullName', 'upiId', 'phone', 'profilePicture']
+    });
 
     res.json({ success: true, contacts: users });
   } catch (error) {
