@@ -14,8 +14,10 @@ services:
         value: production
       - key: PORT
         value: 5000
-      - key: MONGODB_URI
-        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: setupay-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
@@ -23,6 +25,9 @@ services:
     healthCheckPath: /health
 
 databases:
-  # MongoDB Database (optional - you can use MongoDB Atlas instead)
-  # Render doesn't provide MongoDB, so you'll need to use MongoDB Atlas
-  # Instructions below in the deployment guide
+  # PostgreSQL Database
+  - name: setupay-db
+    databaseName: setupay
+    user: setupay_user
+    region: oregon
+    plan: free
